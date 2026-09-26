@@ -12,8 +12,10 @@ macro:
   fred_series: [VIXCLS, DGS10, T10Y2Y, DFF, CPIAUCSL]  # per-series availability checked at first pull
 
 seeds:
+  # A single pinned value seeds python's and numpy's generators (src.cleaning.set_seed);
+  # tensorflow is seeded identically in notebook 03, the first model stage.
   numpy: 42
-  random: 42
+  random: 42            # kept equal to numpy on purpose; enforced by tests/test_config.py
   tensorflow: 42
 
 features:

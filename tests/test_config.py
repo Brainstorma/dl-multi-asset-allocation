@@ -23,6 +23,23 @@ def test_config_file_found():
 def test_seeds_pinned(cfg):
     assert set(cfg["seeds"]) == {"numpy", "random", "tensorflow"}
     assert all(isinstance(v, int) for v in cfg["seeds"].values())
+    # src.cleaning.set_seed pins python's and numpy's generators from the
+    # single numpy seed; a divergent `random` value would be silently dead
+    # config, so keep them equal (or delete one).
+    assert cfg["seeds"]["random"] == cfg["seeds"]["numpy"], (
+        "set_seed() uses seeds.numpy for both generators; update it or the config"
+    )
+
+
+def test_sample_start_not_after_train_start(cfg):
+    # A sample.start earlier than splits.train_start silently invites
+    # training data into whatever exploratory window notebook 01 pulls.
+    sample = date.fromisoformat(cfg["sample"]["start"])
+    train_start = date.fromisoformat(cfg["splits"]["train_start"])
+    assert sample >= train_start, (
+        "data pull would fetch rows before the train block; keep raw store "
+        "inside the committed sample window"
+    )
 
 
 def test_universe_has_no_duplicate_tickers(cfg):

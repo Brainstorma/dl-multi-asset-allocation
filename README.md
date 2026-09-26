@@ -52,14 +52,26 @@ so the same code also works from the repo root):
   business-day lag (`features.macro_lag_bdays`) before joining to prices.
 - **T+1 convention.** Signals at day *t* are tradeable at *t+1*; the supervised
   target is the next-day return, so no row peeks at its own close-to-close move.
+- **Train-only winsorization bounds.** Clip quantiles are estimated on the
+  training block only and then applied everywhere — full-sample quantiles
+  would smuggle test-period tails into the fitted features. The fitted bounds
+  are exported to `data/processed/winsor_bounds.csv` for auditability.
 - **Per-column winsorization.** One volatile name cannot drag the clip bounds
   of every quiet sector ETF toward its own tails.
+- **Joint feature/label row mask.** Rows are dropped only after features and
+  labels are joined, so both always describe exactly the same sample; the drop
+  count is printed and logged.
 - **Bounded forward-fill.** Gaps longer than `ffill_limit` stay NaN and are
   dropped rather than silently invented.
+- **Loud data failures.** A missing or renamed FRED series aborts notebook 01
+  with a pointer to `macro.fred_series` instead of storing a silent gap.
 
 ## Protocol pre-commitment
 
-- Fixed seeds for numpy / random / tensorflow from `config/config.yaml`.
+- One pinned seed value (`seeds.numpy`) drives both python and numpy
+  generators via `src.cleaning.set_seed`, called before any data is touched;
+  tensorflow is seeded in notebook 03, the first model stage. CI fails if
+  `seeds.random` ever diverges from the value actually used.
 - Train/validation/test splits are date-based and set before any test-block run.
 - Every number cited in the report must be reproducible from a notebook cell
   recorded in `results/RESULTS_MANIFEST`.
@@ -77,7 +89,10 @@ jupyter lab                         # then run notebooks/01 -> 02 -> ...
 ```
 
 CI (`.github/workflows/ci.yml`) installs the full pinned environment and runs
-`pytest` on every push and pull request.
+`pytest` on every push and pull request. The CI step sets
+`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`: the guardrail suite needs no third-party
+pytest plugins, so a plugin that breaks collection on some pytest version can
+never take CI down with it.
 
 ## Open items
 

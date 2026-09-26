@@ -21,4 +21,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run test suite
+        # Autoload disabled on purpose: third-party pytest plugins that break
+        # collection on a given pytest version (e.g. "marks on fixtures"
+        # errors) must not be able to take the guardrail suite down. The
+        # repo's tests need no external plugins.
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: pytest -q

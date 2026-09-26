@@ -1,10 +1,12 @@
 """Unit tests for the shared cleaning policy in src/cleaning.py."""
 
+import random
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from src.cleaning import calendar_align, winsorize
+from src.cleaning import calendar_align, set_seed, winsorize, winsorize_with_bounds
 
 
 def test_winsorize_clips_only_the_tails():
@@ -67,3 +69,36 @@ def test_calendar_align_does_not_mutate_inputs():
     snapshot = prices.copy()
     calendar_align(prices, macro, ffill_limit=1)
     pd.testing.assert_frame_equal(prices, snapshot)
+
+
+def test_winsorize_with_bounds_fits_only_on_the_given_subset():
+    # A violent tail in the held-out rows must NOT widen (or move) the clip
+    # bounds: they are fitted on the quiet subset only. This is the leakage
+    # guard notebook 02 relies on for train-only winsorization.
+    df = pd.DataFrame(
+        {
+            "A": [0.0] * 50 + [0.0] * 48 + [-1_000.0, 1_000.0],
+            "B": np.linspace(-1.0, 1.0, 100),
+        }
+    )
+    fit = pd.Series(True, index=df.index)
+    fit.iloc[-2:] = False
+    out, lo, hi = winsorize_with_bounds(df, 0.02, 0.98, fit=fit)
+    assert lo["A"] == df.loc[fit, "A"].quantile(0.02)
+    assert hi["A"] == df.loc[fit, "A"].quantile(0.98)
+    assert out["A"].iloc[-1] == hi["A"], "out-of-sample spike should be clipped"
+    assert out["A"].iloc[-1] < 1_000.0
+    # fit=None falls back to full-sample behaviour, identical to winsorize()
+    plain = winsorize(df, 0.02, 0.98)
+    full, _, _ = winsorize_with_bounds(df, 0.02, 0.98)
+    pd.testing.assert_frame_equal(plain, full)
+
+
+def test_set_seed_makes_draws_reproducible():
+    set_seed(7)
+    first = (random.random(), float(np.random.rand()))
+    set_seed(7)
+    second = (random.random(), float(np.random.rand()))
+    assert first == second
+    set_seed(8)
+    assert (random.random(), float(np.random.rand())) != second
