@@ -19,6 +19,8 @@ seeds:
 features:
   vol_window: 21
   mom_window: 63
+  macro_lag_bdays: 14        # point-in-time shift (business days) for FRED joins;
+                             # sized to CPIAUCSL release lag - see notebook 02
 
 cleaning:
   ffill_limit: 5
@@ -31,6 +33,10 @@ splits:                      # working split, finalized with the team at M3
   valid_start: "2022-01-01"
   valid_end: "2022-12-31"
   test_start: "2023-01-01"
+
+walk_forward:                # rolling refit windows used by notebooks 03-05
+  train_window_days: 1512    # ~6 trading years of calendar window
+  horizon_days: 252          # one-year forecast block per refit
 
 allocation:
   w_max: 0.35                # per-asset position bound
