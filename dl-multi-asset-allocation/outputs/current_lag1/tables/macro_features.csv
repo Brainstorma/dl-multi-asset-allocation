@@ -1,0 +1,5 @@
+﻿series,frequency,release_lag_days,source
+DGS3MO,daily,1,FRED
+DGS10,daily,1,FRED
+T10Y3M,daily,1,FRED
+VIXCLS,daily,1,FRED
