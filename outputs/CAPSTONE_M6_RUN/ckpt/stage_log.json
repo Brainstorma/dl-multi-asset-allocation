@@ -1,0 +1,107 @@
+[
+ {
+  "stage": "01_data",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:50"
+ },
+ {
+  "stage": "02_return_forecasts_seed42",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:51"
+ },
+ {
+  "stage": "03_cov_forecasts",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:51"
+ },
+ {
+  "stage": "02_return_forecasts_seed7",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:53"
+ },
+ {
+  "stage": "02_return_forecasts_seed2026",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:53"
+ },
+ {
+  "stage": "04_cov_lw",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:54"
+ },
+ {
+  "stage": "04_cov_dcc",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:53:54"
+ },
+ {
+  "stage": "05_backtest_lag1_v3_inline",
+  "seconds": 28.7,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:23"
+ },
+ {
+  "stage": "05_backtest_same_close_diagnostic_v2",
+  "seconds": 0.0,
+  "cached": true,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:23"
+ },
+ {
+  "stage": "05_backtest_0bps_lag1_v3_inline",
+  "seconds": 9.8,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:33"
+ },
+ {
+  "stage": "05_backtest_seed7_lag1_v3_inline",
+  "seconds": 4.0,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:37"
+ },
+ {
+  "stage": "05_backtest_seed2026_lag1_v3_inline",
+  "seconds": 4.2,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:41"
+ },
+ {
+  "stage": "06_tests_lag1_v3_inline",
+  "seconds": 0.6,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:54:42"
+ },
+ {
+  "stage": "07_extensions_lag1_v3_inline",
+  "seconds": 49.6,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:55:32"
+ },
+ {
+  "stage": "08_holdout_lag1_v3_inline",
+  "seconds": 1.0,
+  "cached": false,
+  "run_tag": "lag1_v3_inline",
+  "when": "2026-10-25T23:55:33"
+ }
+]

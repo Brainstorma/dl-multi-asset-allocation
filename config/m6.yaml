@@ -1,0 +1,30 @@
+project:
+  group: "17863"
+  milestone: M6
+  version: 0.8.0
+run:
+  quick_check: false
+  primary_execution_lag_days: 1
+  run_tag: lag1_v3_inline
+  use_drive_checkpoints: true
+sample:
+  validation_years: [2004, 2005, 2006]
+  test: ["2007-01-05", "2025-12-31"]
+  holdout: ["2026-01-02", "2026-09-30"]
+model:
+  horizon_days: 5
+  sequence_days: 60
+  units: 32
+  layers: 2
+  dropout: 0.3
+  epochs: 30
+  patience: 5
+portfolio:
+  position_cap: 0.25
+  one_way_turnover_cap: 0.20
+  annual_volatility_ceiling: 0.10
+  cost_bps_per_side: 10
+validation:
+  selection_metric: mean_net_sharpe
+  selection_direction: max
+  variants: 21

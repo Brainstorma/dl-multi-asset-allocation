@@ -1,103 +1,68 @@
 # Deep Learning for Dynamic Multi-Asset Portfolio Allocation
 
-MScFE 690 Capstone - Track 8, Topic 2. Team: Joseph Amoako-Asare (901774),
-Isaac Asirifi (881355).
+MScFE 690 Capstone, Group 17863: Joseph Amoako-Asare and Isaac Asirifi.
 
-## Research question
+This repository evaluates whether LSTM return and covariance forecasts improve a constrained allocation across nine US sector ETFs after position limits, a 10% volatility ceiling, turnover limits and transaction costs. The Milestone 6 release contains the final draft report, the fully executed `lag1_v3_inline` notebook, reusable `m6core`, deterministic tests, configuration, the latest run tables and all figures.
 
-Do portfolio weights driven by LSTM return and covariance forecasts earn higher
-out-of-sample risk-adjusted returns than classical allocation rules (equal-weight,
-mean-variance with Ledoit-Wolf shrinkage, risk parity) on a universe of liquid US
-sector ETFs and large-cap equities?
+## Milestone 6 result
 
-## Repository structure
+The primary convention forms forecasts with information available at close *t* and executes at close *t+1*.
 
-```
-config/config.yaml          seeds, universe, split dates, limits, cost model
-src/                        shared library used by the notebooks AND the tests
-  config.py                   path-safe YAML loader (single source of truth)
-  cleaning.py                   winsorization + calendar-alignment policy
-notebooks/01_data_pull.ipynb    scripted yfinance + FRED pull, data-quality gate
-notebooks/02_features.ipynb     feature matrix, leakage guards, date splits
-notebooks/03_models.ipynb       [M3] LSTM return/covariance models, walk-forward
-notebooks/04_allocate.ipynb     [M4] constrained optimizer, hybrid variant
-notebooks/05_backtest.ipynb     [M5] backtest engine, metrics, sub-periods
-notebooks/06_report.ipynb       [M6] exhibits for the final report
-tests/                      pytest suite (config validation, cleaning unit tests,
-                            notebook static checks) - runs in CI on every push
-data/raw/, data/processed/      CSV/parquet store (never hand-edited, gitignored;
-                                regenerate with notebook 01 -> 02)
-results/                    RESULTS_MANIFEST exports
-```
+| Item | Lag-one result |
+|---|---:|
+| Full-design net Sharpe | 0.305 |
+| Equal-weight net Sharpe | 0.528 |
+| Shrinkage minimum-variance net Sharpe | 0.522 |
+| Full-design maximum drawdown | -28.8% |
+| Validation-selected extension | Rebalance every four weeks |
+| Selected-extension test Sharpe | 0.260 |
+| Full-design 2026 hold-out Sharpe | 0.509 |
 
-## Pipeline
+H1, H2 and H3 are rejected. The full design trails the named benchmarks, its drawdown advantage disappears against risk-matched portfolios, and the stress-week coefficient is not positive and significant. Same-close results remain only in the labelled timing-sensitivity sheet.
 
-Run the notebooks in numeric order from within `notebooks/` (Jupyter Lab sets
-the working directory there; all paths resolve through `src.config.project_root()`
-so the same code also works from the repo root):
+## Final run provenance
 
-1. **01_data_pull** - downloads adjusted closes (10 sector SPDRs + SPY + the
-   frozen equity sleeve) and five FRED macro series into `data/raw/`, then
-   applies a hard data-quality gate (asserts before anything downstream runs).
-2. **02_features** - builds returns / rolling vol / momentum, joins a
-   point-in-time macro block, winsorizes tails per column, writes the parquet
-   feature store plus a machine-readable cleaning log, and cuts the dated
-   train/validation/test blocks.
-3. **03-06** - models, allocation, backtest, report (M3-M6 milestones).
+The canonical notebook in `notebooks/` is the executed Colab notebook from 25 October 2026. It has 18 executed code cells, no error outputs, seven inline PNG outputs and 22 final result tables. The matching workbook identifies the run as `lag1_v3_inline`, records a one-trading-day execution lag and covers prices through 1 October 2026. Its 22 result sheets agree with the original CSV exports in the newest full-run folder.
 
-## Leakage guards (enforced in code, not just prose)
+## Repository layout
 
-- **Point-in-time macro data.** FRED series carry publication lags (CPIAUCSL
-  by weeks); notebook 02 shifts the whole macro block by a configurable
-  business-day lag (`features.macro_lag_bdays`) before joining to prices.
-- **T+1 convention.** Signals at day *t* are tradeable at *t+1*; the supervised
-  target is the next-day return, so no row peeks at its own close-to-close move.
-- **Train-only winsorization bounds.** Clip quantiles are estimated on the
-  training block only and then applied everywhere — full-sample quantiles
-  would smuggle test-period tails into the fitted features. The fitted bounds
-  are exported to `data/processed/winsor_bounds.csv` for auditability.
-- **Per-column winsorization.** One volatile name cannot drag the clip bounds
-  of every quiet sector ETF toward its own tails.
-- **Joint feature/label row mask.** Rows are dropped only after features and
-  labels are joined, so both always describe exactly the same sample; the drop
-  count is printed and logged.
-- **Bounded forward-fill.** Gaps longer than `ffill_limit` stay NaN and are
-  dropped rather than silently invented.
-- **Loud data failures.** A missing or renamed FRED series aborts notebook 01
-  with a pointer to `macro.fred_series` instead of storing a silent gap.
+- `notebooks/`: fully executed revised Colab notebook.
+- `src/`: reusable pipeline module.
+- `config/`: frozen study and execution controls.
+- `tests/`: deterministic tests that require no data download.
+- `figures/`: the seven PNGs displayed by the executed notebook.
+- `outputs/current_lag1/`: final results workbook, run log and 22 original CSV tables.
+- `docs/`: final M6 report, PDF, audit, result status and reproducibility notes.
+- `scripts/`: repository, delivery and release verification.
 
-## Protocol pre-commitment
+The separate TEAM_ONLY package contains the original newest-run archive, executed HTML, configuration, verification, assistance and REAP evidence. It is excluded from the GitHub release and academic SUBMISSION package.
 
-- One pinned seed value (`seeds.numpy`) drives both python and numpy
-  generators via `src.cleaning.set_seed`, called before any data is touched;
-  tensorflow is seeded in notebook 03, the first model stage. CI fails if
-  `seeds.random` ever diverges from the value actually used.
-- Train/validation/test splits are date-based and set before any test-block run.
-- Every number cited in the report must be reproducible from a notebook cell
-  recorded in `results/RESULTS_MANIFEST`.
-- Transaction-cost assumptions favor the benchmarks when in doubt.
-- The protocol itself is now executable: `tests/test_config.py` fails CI if a
-  seed unpins, a split overlaps, or an allocation limit goes incoherent.
+## Reproduce
 
-## Running
+Open `notebooks/M6_FULL_RUN_Group17863_REVISED_COLAB.ipynb` in Google Colab and run all cells with `QUICK_CHECK = False`, `PRIMARY_EXECUTION_LAG = 1` and `RUN_TAG = "lag1_v3_inline"`. The notebook writes `M6_RESULTS_17863.xlsx`, `m6_run_log.md`, `figures.zip`, seven PNGs and 22 CSV result tables.
+
+## Local verification
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pytest                              # guardrail suite, ~1s, no network needed
-jupyter lab                         # then run notebooks/01 -> 02 -> ...
+python -m pip install -r requirements-ci.txt
+python -m pytest -q
+python scripts/verify_repo.py
+python scripts/build_release.py
+python scripts/verify_delivery.py
 ```
 
-CI (`.github/workflows/ci.yml`) installs the full pinned environment and runs
-`pytest` on every push and pull request. The CI step sets
-`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`: the guardrail suite needs no third-party
-pytest plugins, so a plugin that breaks collection on some pytest version can
-never take CI down with it.
+A clean full run additionally needs the packages in `requirements.txt` and network access to Yahoo Finance and FRED.
 
-## Open items
+## Reproducibility controls
 
-- Frozen equity sleeve: AAPL, JPM, JNJ, XOM (committed at M2; MSFT dropped -
-  overlap with AAPL duplicates XLK exposure).
-- Per-series macro release lags to replace the single conservative default at
-  M3 (VIXCLS/DFF need far less lag than CPIAUCSL).
-- GitHub repository URL to be added when the repo goes live.
+- Expanding training uses only data available before each forecast year.
+- The final five targets are purged at every annual boundary.
+- Extension settings are selected on 2004-2006 only.
+- Test returns start one trading day after the decision close.
+- Choices are frozen before test and hold-out evaluation.
+- All 21 validation variants are reported.
+- Hypothesis-test checkpoints are versioned by `RUN_TAG` to prevent cross-run cache reuse.
+
+## Disclaimer
+
+This is academic research, not investment advice. Results are historical and model-dependent.
